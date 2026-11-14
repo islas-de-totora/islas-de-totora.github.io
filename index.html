@@ -61,6 +61,7 @@
             <button class="boton_explorar" onclick="cambiarAmbiente('atardecer')">🌅 Atardecer</button>
             <button class="boton_explorar" onclick="cambiarAmbiente('noche')">🌙 Noche</button>
             <button class="boton_explorar" onclick="cambiarAmbiente('nublado')">☁️ Nublado</button>
+            <button class="boton_explorar" onclick="alternarSonido()" id="btnSonido">🔊</button>
             <button class="boton_explorar" onclick="alternarNavegacion()" id="btnNavegar">⛵ Navegar</button>
             <div class="ayudaGiro" id="ayudaNavegar" style="display:none;">
                 <div class="ayudaFila"><kbd>W</kbd> <kbd>↑</kbd> Avanzar</div>
@@ -132,6 +133,8 @@
 
         <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/OutlinePass.js"></script>
         <script src="ambiente.js"></script>
+        <script src="audio.js"></script>
+        <script src="script.js"></script>
         <script src="script.js"></script>
     </body>
 </html>

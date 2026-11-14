@@ -53,6 +53,14 @@ let paginaCultura = 0;
 let destinoLook = new THREE.Vector3(); 
 const INICIO_POS  = new THREE.Vector3(-20, 4, 50);
 const INICIO_LOOK = new THREE.Vector3(10, 0, 30);
+
+const ORBITA_CENTRO = new THREE.Vector3(-4, 0, 13);   // centro del archipiélago
+const ORBITA_RADIO = 66;
+const ORBITA_ALTURA = 12;
+const ORBITA_VEL = 0.0015;                            // más grande = gira más rápido
+const orbitaObj = new THREE.Vector3();
+let orbitaPausada = false, temporizadorOrbita, angOrbita = null;
+
 let animCamara = {
     activa: false,
     inicio: new THREE.Vector3(),
@@ -273,6 +281,9 @@ function actualizarAyuda(){
 
 function abrirTarjeta(i){
     if(i < 0 || tarjetaAbierta >= 0) return;
+
+    sonar();
+
     tarjetaAbierta = i;
     velBarco = 0;
     actualizarInfo(i);
@@ -435,6 +446,7 @@ function animarPeces(){
 
 function abrirPeces(){
     if(pecesAbierto) return;
+    sonar();
     if(ubicacionAbierta) cerrarUbicacion();
     if(tarjetaAbierta >= 0) cerrarTarjeta();
     pecesAbierto = true;
@@ -459,6 +471,7 @@ let ubicacionAbierta = false;
 
 function abrirUbicacion(){
     if(ubicacionAbierta) return;
+    sonar();
     if(pecesAbierto) cerrarPeces();
     if(tarjetaAbierta >= 0) cerrarTarjeta(false);
     ubicacionAbierta = true;
@@ -593,6 +606,9 @@ function init(){
   controls.maxDistance = 70;
   controls.maxPolarAngle = Math.PI / 2 - 0.05;
 
+  controls.addEventListener("start", () => { orbitaPausada = true; clearTimeout(temporizadorOrbita); });
+controls.addEventListener("end", () => { temporizadorOrbita = setTimeout(() => orbitaPausada = false, 3000); });
+
 
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(new THREE.RenderPass(scene, camera));
@@ -633,6 +649,19 @@ function animate() {
 
     destinoLook.lerpVectors(animCamara.lookInicio,animCamara.lookObjetivo,e);
   }
+
+  if(!modoNavegar && tarjetaAbierta < 0 && !animCamara.activa && !orbitaPausada){
+    if(angOrbita === null) angOrbita = Math.atan2(camera.position.z - ORBITA_CENTRO.z, camera.position.x - ORBITA_CENTRO.x);
+    angOrbita += ORBITA_VEL;
+    camera.position.lerp(orbitaObj.set(
+        ORBITA_CENTRO.x + Math.cos(angOrbita) * ORBITA_RADIO,
+        ORBITA_ALTURA,
+        ORBITA_CENTRO.z + Math.sin(angOrbita) * ORBITA_RADIO), 0.03);
+    destinoLook.lerp(ORBITA_CENTRO, 0.05);
+ }else{
+    angOrbita = null;
+ }
+
   camera.lookAt(destinoLook);
   requestAnimationFrame(animate);
 
@@ -677,7 +706,8 @@ if(modoNavegar && barcoJugador && tarjetaAbierta < 0){
         barcoJugador.position.z - Math.cos(rotBarco) * 10
     );
     camera.position.lerp(camObjetivo, 0.08);
-    destinoLook.set(barcoJugador.position.x, 0, barcoJugador.position.z);
+    destinoLook.lerp(orbitaObj.set(barcoJugador.position.x, 0, barcoJugador.position.z), 0.1);
+    // destinoLook.set(barcoJugador.position.x, 0, barcoJugador.position.z);
 
     actualizarIconos();
 
@@ -707,6 +737,7 @@ if(camera.position.y < -1){
 }
 
 //   renderer.render(scene, camera);
+sonidoBarco();
 composer.render();
 }
 init();
